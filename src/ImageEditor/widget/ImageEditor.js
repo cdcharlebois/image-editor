@@ -39,7 +39,7 @@ define([
         postCreate: function () {
             logger.debug(this.id + ".postCreate");
 
-            var canvas = new fabric.Canvas(this.canvasNode);
+            this.canvas = new fabric.Canvas(this.canvasNode);
 
             // create a rectangle object
             var rect = new fabric.Rect({
@@ -51,10 +51,10 @@ define([
             });
 
             // "add" rectangle onto canvas
-            canvas.add(rect);
+            this.canvas.add(rect);
             fabric.Image.fromURL('https://oakvillenews.org/wp-content/uploads/2014/06/111.jpg', function (oImg) {
-                canvas.add(oImg);
-            });
+                this.canvas.add(oImg);
+            }.bind(this));
         },
 
         update: function (obj, callback) {
@@ -66,6 +66,7 @@ define([
 
         resize: function (box) {
             logger.debug(this.id + ".resize");
+            this._resizeCanvas();
         },
 
         uninitialize: function () {
@@ -105,7 +106,23 @@ define([
             if (cb && typeof cb === "function") {
                 cb();
             }
-        }
+        },
+
+        /**
+         * resize the canvas when the window changes size
+         */
+        _resizeCanvas: function () {
+            this.canvasNode.width = window.innerWidth;
+            this.canvasNode.height = window.innerHeight;
+            this.canvas.setWidth(window.innerWidth);
+            this.canvas.setHeight(window.innerHeight);
+            this.canvas.calcOffset();
+        },
+
+        _plotImageFromContext: function () {
+
+        },
+
     });
 });
 
