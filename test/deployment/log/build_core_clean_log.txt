@@ -1,0 +1,8 @@
+﻿Buildfile: \\Mac\mendix\w\image-editor\test\deployment\build_core.xml
+
+clean:
+
+BUILD SUCCESSFUL
+Total time: 0 seconds
+
+
