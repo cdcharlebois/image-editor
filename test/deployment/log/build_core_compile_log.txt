@@ -1,7 +1,7 @@
 ﻿Buildfile: \\Mac\mendix\w\image-editor\test\deployment\build_core.xml
 
 compile:
-    [javac] Compiling 2 source files to \\Mac\mendix\w\image-editor\test\deployment\run\bin
+    [javac] Compiling 1 source file to \\Mac\mendix\w\image-editor\test\deployment\run\bin
 
 build:
       [bnd] # addAll 'deployment/run/bnd.bnd' with ,

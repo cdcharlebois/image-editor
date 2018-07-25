@@ -47,17 +47,6 @@ define([
 
             this.canvas = new fabric.Canvas(this.canvasNode);
 
-            // create a rectangle object
-            // var rect = new fabric.Rect({
-            //     left: 100,
-            //     top: 100,
-            //     fill: 'red',
-            //     width: 20,
-            //     height: 20
-            // });
-
-            // "add" rectangle onto canvas
-            // this.canvas.add(rect);
             fabric.Image.fromURL('https://oakvillenews.org/wp-content/uploads/2014/06/111.jpg', function (oImg) {
                 this.canvas.add(oImg);
             }.bind(this));
@@ -160,19 +149,21 @@ define([
         },
 
         _setupEvents: function () {
-            this.connect(this.addTextButtonNode, "click", lang.hitch(this, function () {
-                var itext = new fabric.IText('Enter your Text', {
-                    left: this.canvas.getWidth() / 2,
-                    top: this.canvas.getHeight() / 2,
-                    fill: '#D81B60',
-                    strokeWidth: 2,
-                    stroke: "#880E4F",
-                    originX: 'center',
-                    originY: 'center'
-                });
-                this.canvas.add(itext);
-            }));
+            this.connect(this.addTextButtonNode, "click", this._drawInteractiveText);
             this.connect(this.addArrowButtonNode, "click", this._drawArrow);
+        },
+
+        _drawInteractiveText: function () {
+            var itext = new fabric.IText('Enter your Text', {
+                left: this.canvas.getWidth() / 2,
+                top: this.canvas.getHeight() / 2,
+                fill: '#D81B60',
+                strokeWidth: 2,
+                stroke: "#880E4F",
+                originX: 'center',
+                originY: 'center'
+            });
+            this.canvas.add(itext);
         },
 
         _drawArrow: function () {
