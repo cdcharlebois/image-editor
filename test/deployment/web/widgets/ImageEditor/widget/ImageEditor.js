@@ -27,6 +27,12 @@ define([
         // nodes
         canvasNode: null,
         widgetBase: null,
+        addTextButtonNode: null,
+        addArrowButtonNode: null,
+
+        //modeler variables
+        canvasHeight: 500,
+        canvasWidth: 900,
 
         // Internal variables.
         _handles: null,
@@ -42,19 +48,20 @@ define([
             this.canvas = new fabric.Canvas(this.canvasNode);
 
             // create a rectangle object
-            var rect = new fabric.Rect({
-                left: 100,
-                top: 100,
-                fill: 'red',
-                width: 20,
-                height: 20
-            });
+            // var rect = new fabric.Rect({
+            //     left: 100,
+            //     top: 100,
+            //     fill: 'red',
+            //     width: 20,
+            //     height: 20
+            // });
 
             // "add" rectangle onto canvas
-            this.canvas.add(rect);
+            // this.canvas.add(rect);
             fabric.Image.fromURL('https://oakvillenews.org/wp-content/uploads/2014/06/111.jpg', function (oImg) {
                 this.canvas.add(oImg);
             }.bind(this));
+            this._setupEvents();
         },
 
         update: function (obj, callback) {
@@ -66,7 +73,8 @@ define([
 
         resize: function (box) {
             logger.debug(this.id + ".resize");
-            this._resizeCanvas();
+            // this._resizeCanvas(); // could resize to window?
+            this._updateRendering();
         },
 
         uninitialize: function () {
@@ -75,7 +83,8 @@ define([
 
         _updateRendering: function (callback) {
             logger.debug(this.id + "._updateRendering");
-
+            this._resizeCanvas();
+            this._drawCanvasBackground();
             this._executeCallback(callback, "_updateRendering");
         },
 
@@ -110,18 +119,91 @@ define([
 
         /**
          * resize the canvas when the window changes size
-         */
+        //  */
         _resizeCanvas: function () {
-            this.canvasNode.width = window.innerWidth;
-            this.canvasNode.height = window.innerHeight;
-            this.canvas.setWidth(window.innerWidth);
-            this.canvas.setHeight(window.innerHeight);
+            this.canvasNode.width = this.canvasWidth;
+            this.canvasNode.height = this.canvasHeight;
+            this.canvas.setWidth(this.canvasWidth);
+            this.canvas.setHeight(this.canvasHeight);
             this.canvas.calcOffset();
         },
 
         _plotImageFromContext: function () {
 
         },
+
+        /**
+         * REQUIRES CONTEXT
+         * - resizes the canvas
+         */
+        _drawCanvasBackground: function () {
+            var imgUrl = mx.data.getDocumentUrl(this._contextObj.getGuid(), this._contextObj.get("changedDate"), false);
+            fabric.Image.fromURL(imgUrl, function (img) {
+                var imgWidth = img.width
+                    , imgHeight = img.height
+                    , aspectRatio = imgHeight / imgWidth
+                    , canvasWidth = this.canvas.width
+                    , canvasHeight = this.canvas.width * aspectRatio
+                    , scaleFactor = canvasWidth / imgWidth;
+                img.set({
+                    width: imgWidth,
+                    height: imgHeight,
+                    originX: 'left',
+                    originY: 'top',
+                    scaleX: scaleFactor,
+                    scaleY: scaleFactor
+                });
+                this.canvas.setWidth(canvasWidth);
+                this.canvas.setHeight(canvasHeight);
+                this.canvas.setBackgroundImage(img, this.canvas.renderAll.bind(this.canvas));
+            }.bind(this));
+        },
+
+        _setupEvents: function () {
+            this.connect(this.addTextButtonNode, "click", lang.hitch(this, function () {
+                var itext = new fabric.IText('Enter your Text', {
+                    left: this.canvas.getWidth() / 2,
+                    top: this.canvas.getHeight() / 2,
+                    fill: '#D81B60',
+                    strokeWidth: 2,
+                    stroke: "#880E4F",
+                    originX: 'center',
+                    originY: 'center'
+                });
+                this.canvas.add(itext);
+            }));
+            this.connect(this.addArrowButtonNode, "click", this._drawArrow);
+        },
+
+        _drawArrow: function () {
+            var triangle = new fabric.Triangle({
+                width: 10,
+                height: 15,
+                fill: 'red',
+                left: 235,
+                top: 65,
+                angle: 90
+            });
+
+            var line = new fabric.Line([50, 100, 200, 100], {
+                left: 75,
+                top: 70,
+                stroke: 'red'
+            });
+
+            var objs = [line, triangle];
+
+            var alltogetherObj = new fabric.Group(objs, {
+                left: this.canvas.getWidth() / 2,
+                top: this.canvas.getHeight() / 2,
+                originX: 'center',
+                originY: 'center',
+                // lockScalingX: true,
+                // lockScalingY: true
+            });
+            this.canvas.add(alltogetherObj);
+
+        }
 
     });
 });
