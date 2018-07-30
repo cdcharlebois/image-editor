@@ -34,6 +34,8 @@ define([
         //modeler variables
         canvasHeight: 500,
         canvasWidth: 900,
+        imAttribute: null,
+        imageMapping: null, // {imKey: string, imImage: image}
 
         // Internal variables.
         _handles: null,
@@ -48,9 +50,9 @@ define([
 
             this.canvas = new fabric.Canvas(this.canvasNode);
 
-            fabric.Image.fromURL('/img/MyFirstModule$_16_base_back.png', function (oImg) {
-                this.canvas.add(oImg);
-            }.bind(this));
+            // fabric.Image.fromURL('/img/MyFirstModule$_16_base_back.png', function (oImg) {
+            //     this.canvas.add(oImg);
+            // }.bind(this));
             this._setupEvents();
         },
 
@@ -58,6 +60,9 @@ define([
             logger.debug(this.id + ".update");
 
             this._contextObj = obj;
+            if (this._contextObj) {
+                this._drawDefaultCMB();
+            }
             this._updateRendering(callback);
         },
 
@@ -203,9 +208,15 @@ define([
          *  - copy the association from the source image->parent to this new object
          */
         _saveToNewImage: function () {
+            this.saveButtonNode.setAttribute("disabled", null);
+            this.saveButtonNode.innerText = "Saving..."
             this._getNewImageObject()
                 .then(this._copyParentAssociationToNewObject.bind(this))
-                .then(this._saveCanvasContentsToImage.bind(this));
+                .then(this._saveCanvasContentsToImage.bind(this))
+                .then(function () {
+                    this.saveButtonNode.removeAttribute("disabled");
+                    this.saveButtonNode.innerText = "Save";
+                }.bind(this));
         },
 
         /**
@@ -249,27 +260,38 @@ define([
         },
 
         _saveCanvasContentsToImage: function (object) {
-            this.canvas.deactivateAll().renderAll();
-            this.canvasNode.toBlob(lang.hitch(this, function (blob) {
-                var fname = "img_" + new Date().toISOString().replace(/\W/g, "") + ".jpg";
-                window.mx.data.saveDocument(
-                    object.getGuid(), fname, {
-                        width: 640,
-                        height: 480
-                    },
-                    blob,
-                    lang.hitch(this, function () {
-                        console.log("ok");
-                        // this.mxform.reload(); // fine for pages for the context is parameter
-                        // if (this.onUploaded) {
-                        //     this._executeMicroflow(this.onUploaded, guid);
-                        // }
-                    }),
-                    function (err) {
-                        console.error("error");
-                    });
+            return new Promise(lang.hitch(this, function (resolve, reject) {
+                this.canvas.deactivateAll().renderAll();
+                this.canvasNode.toBlob(lang.hitch(this, function (blob) {
+                    var fname = "img_" + new Date().toISOString().replace(/\W/g, "") + ".jpg";
+                    window.mx.data.saveDocument(
+                        object.getGuid(), fname, {
+                            width: 640,
+                            height: 480
+                        },
+                        blob,
+                        lang.hitch(this, function () {
+                            console.log("ok");
+                            resolve();
+                        }),
+                        function (err) {
+                            reject("error");
+                        });
+                }));
             }));
-        }
+
+        },
+
+        /**
+         * Look at the context object, and draw the right image (based on the mapping in this.imageMapping)
+         */
+        _drawDefaultCMB: function () {
+            var key = this._contextObj.get(this.imAttribute); // "_16Back"
+            var image = this.imageMapping.find(function (pair) { return pair.imKey === key }); // {imKey: "_16Back", imImage: "...?"}
+            fabric.Image.fromURL(image.imImage, function (oImg) {
+                this.canvas.add(oImg);
+            }.bind(this));
+        },
 
 
 

@@ -6,10 +6,30 @@
     <icon />
 
     <properties>
-        <property key="dummyKey" type="string" required="false" defaultValue="">
-            <caption>Dummy key</caption>
-            <category>Appearance</category>
-            <description>This key was added to make the widget work in the Modeler (needs atleast 1 key). Please change/remove this one</description>
+        <property key="imAttribute" type="attribute" required="true">
+          <caption>Attribute</caption>
+          <category>Appearance</category>
+          <description>The enumeration to use to set the default CMB image on the overlay</description>
+          <attributeTypes>
+            <attributeType name="Enum" />
+          </attributeTypes>
+        </property>
+        <property key="imageMapping" type="object" isList="true" required="true">
+          <caption>Images</caption>
+          <category>Appearance</category>
+          <description>What images should be displayed based on the enumeration values?</description>
+          <properties>
+            <property key="imKey" type="string" required="true">
+              <caption>Key</caption>
+              <category>General</category>
+              <description>The enumeration value. (Must match exactly)</description>
+            </property>
+            <property key="imImage" type="image" required="false">
+             <caption>Image</caption>
+              <category>General</category>
+              <description>The image to display for this enumeration value</description>
+            </property>
+          </properties>
         </property>
     </properties>
 </widget>
