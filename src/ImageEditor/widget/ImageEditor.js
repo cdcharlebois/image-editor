@@ -29,6 +29,7 @@ define([
         widgetBase: null,
         addTextButtonNode: null,
         addArrowButtonNode: null,
+        saveButtonNode: null,
 
         //modeler variables
         canvasHeight: 500,
@@ -47,7 +48,7 @@ define([
 
             this.canvas = new fabric.Canvas(this.canvasNode);
 
-            fabric.Image.fromURL('https://oakvillenews.org/wp-content/uploads/2014/06/111.jpg', function (oImg) {
+            fabric.Image.fromURL('/img/MyFirstModule$_16_base_back.png', function (oImg) {
                 this.canvas.add(oImg);
             }.bind(this));
             this._setupEvents();
@@ -151,6 +152,7 @@ define([
         _setupEvents: function () {
             this.connect(this.addTextButtonNode, "click", this._drawInteractiveText);
             this.connect(this.addArrowButtonNode, "click", this._drawArrow);
+            this.connect(this.saveButtonNode, "click", this._saveToNewImage);
         },
 
         _drawInteractiveText: function () {
@@ -193,8 +195,83 @@ define([
                 // lockScalingY: true
             });
             this.canvas.add(alltogetherObj);
+        },
 
+        /**
+         * SAVE TO NEW IMAGE
+         *  - save the canvas contents to a new image object
+         *  - copy the association from the source image->parent to this new object
+         */
+        _saveToNewImage: function () {
+            this._getNewImageObject()
+                .then(this._copyParentAssociationToNewObject.bind(this))
+                .then(this._saveCanvasContentsToImage.bind(this));
+        },
+
+        /**
+        * GetImageObejctGuid
+        * ---
+        * Returns the image object (either from context or creates one)
+        *  
+        * @author Conner Charlebois
+        * @since Jul 30, 2018
+        * @returns newly created MyImage object
+        */
+        _getNewImageObject: function () {
+            return new Promise(lang.hitch(this, function (resolve, reject) {
+                // create a new object of this entity
+                mx.data.create({
+                    entity: "MyFirstModule.MyImage",
+                    callback: lang.hitch(this, function (obj) {
+                        console.log("The object has been created");
+                        resolve(obj);
+                    }),
+                    error: function (e) {
+                        reject("there was an error creating this object");
+                    },
+                });
+            }));
+        },
+
+        /**
+         * @returns MyImage Object with parent association set and the IsAnnotated flag set
+         */
+        _copyParentAssociationToNewObject: function (object) {
+            return new Promise(lang.hitch(this, function (resolve, reject) {
+                // context object exists and is tied to a parent entity
+                if (this._contextObj && this._contextObj.get("MyFirstModule.MyImage_ParentEntity")) {
+                    object.set("MyFirstModule.MyImage_ParentEntity", this._contextObj.get("MyFirstModule.MyImage_ParentEntity"));
+                    object.set("IsAnnotated", true);
+                    resolve(object);
+                }
+                reject("Context object is empty or there is no parent association set");
+            }));
+        },
+
+        _saveCanvasContentsToImage: function (object) {
+            this.canvas.deactivateAll().renderAll();
+            this.canvasNode.toBlob(lang.hitch(this, function (blob) {
+                var fname = "img_" + new Date().toISOString().replace(/\W/g, "") + ".jpg";
+                window.mx.data.saveDocument(
+                    object.getGuid(), fname, {
+                        width: 640,
+                        height: 480
+                    },
+                    blob,
+                    lang.hitch(this, function () {
+                        console.log("ok");
+                        // this.mxform.reload(); // fine for pages for the context is parameter
+                        // if (this.onUploaded) {
+                        //     this._executeMicroflow(this.onUploaded, guid);
+                        // }
+                    }),
+                    function (err) {
+                        console.error("error");
+                    });
+            }));
         }
+
+
 
     });
 });
