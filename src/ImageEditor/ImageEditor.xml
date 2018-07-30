@@ -6,6 +6,17 @@
     <icon />
 
     <properties>
+        <property key="pathToParent" type="entity" isPath="yes" allowNonPersistableEntities="false" pathType="reference" required="false">
+          <caption>Path to Parent</caption>
+          <category>General</category>
+          <description>Select the parent entity, over the association whose value will be copied into the new image. </description>
+        </property>
+        <property key="onUploadComplete" type="microflow" required="false">
+          <caption>On Complete</caption>
+          <category>General</category>
+          <description>The microflow to be called when the upload finishes. Will receive the new object (of the same entity as the current context) as a parameter</description>
+          <returnType type="Void" />
+        </property>
         <property key="imAttribute" type="attribute" required="true">
           <caption>Attribute</caption>
           <category>Appearance</category>

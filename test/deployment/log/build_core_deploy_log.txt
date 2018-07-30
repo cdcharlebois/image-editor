@@ -4,5 +4,6 @@ deploy:
      [copy] Copying 45 files to \\Mac\mendix\w\image-editor\test\deployment
 
 BUILD SUCCESSFUL
-Total time: 1 second
+Total time: 2 seconds
+
 

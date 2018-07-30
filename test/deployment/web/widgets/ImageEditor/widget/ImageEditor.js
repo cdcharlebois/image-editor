@@ -36,6 +36,8 @@ define([
         canvasWidth: 900,
         imAttribute: null,
         imageMapping: null, // {imKey: string, imImage: image}
+        pathToParent: null,
+        onUploadComplete: null,
 
         // Internal variables.
         _handles: null,
@@ -213,6 +215,7 @@ define([
             this._getNewImageObject()
                 .then(this._copyParentAssociationToNewObject.bind(this))
                 .then(this._saveCanvasContentsToImage.bind(this))
+                .then(this._executeCompletedMicroflow.bind(this))
                 .then(function () {
                     this.saveButtonNode.removeAttribute("disabled");
                     this.saveButtonNode.innerText = "Save";
@@ -232,7 +235,7 @@ define([
             return new Promise(lang.hitch(this, function (resolve, reject) {
                 // create a new object of this entity
                 mx.data.create({
-                    entity: "MyFirstModule.MyImage",
+                    entity: this._contextObj.getEntity(),
                     callback: lang.hitch(this, function (obj) {
                         console.log("The object has been created");
                         resolve(obj);
@@ -249,16 +252,19 @@ define([
          */
         _copyParentAssociationToNewObject: function (object) {
             return new Promise(lang.hitch(this, function (resolve, reject) {
+                var associationName = this.pathToParent.split("/")[0];
                 // context object exists and is tied to a parent entity
-                if (this._contextObj && this._contextObj.get("MyFirstModule.MyImage_ParentEntity")) {
-                    object.set("MyFirstModule.MyImage_ParentEntity", this._contextObj.get("MyFirstModule.MyImage_ParentEntity"));
-                    object.set("IsAnnotated", true);
+                if (this._contextObj && this._contextObj.get(associationName)) {
+                    object.set(associationName, this._contextObj.get(associationName));
                     resolve(object);
                 }
                 reject("Context object is empty or there is no parent association set");
             }));
         },
 
+        /**
+         * @return guid of newly saved object
+         */
         _saveCanvasContentsToImage: function (object) {
             return new Promise(lang.hitch(this, function (resolve, reject) {
                 this.canvas.deactivateAll().renderAll();
@@ -272,7 +278,7 @@ define([
                         blob,
                         lang.hitch(this, function () {
                             console.log("ok");
-                            resolve();
+                            resolve(object.getGuid());
                         }),
                         function (err) {
                             reject("error");
@@ -292,6 +298,29 @@ define([
                 this.canvas.add(oImg);
             }.bind(this));
         },
+
+        /**
+         * execute the specified Microflow, if one exists
+         */
+        _executeCompletedMicroflow: function (guid) {
+            return new Promise(lang.hitch(this, function (resolve, reject) {
+                if (this.onUploadComplete) {
+                    mx.data.action({
+                        params: {
+                            actionname: this.onUploadComplete,
+                            applyto: "selection",
+                            guids: [guid],
+                        },
+                        origin: this.mxform,
+                        callback: resolve,
+                        error: reject
+                    })
+                } else {
+                    resolve();
+                }
+
+            }))
+        }
 
 
 

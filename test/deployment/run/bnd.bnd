@@ -1,4 +1,4 @@
-Private-Package: system, system, system.actions, system.proxies, system.proxies.microflows, myfirstmodule.proxies, administration.proxies, administration.proxies.microflows
+Private-Package: system, system, system.actions, system.proxies, system.proxies.microflows, myfirstmodule.proxies, myfirstmodule.proxies.microflows, administration.proxies, administration.proxies.microflows
 Import-Package: *;resolution:=optional
 Service-Component: *
 Include-Resource: ../../userlib/;recursive:=true;filter:=!*.jar
